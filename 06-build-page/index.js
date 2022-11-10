@@ -62,7 +62,7 @@ function createFile(filePath, data) {
 }
 
 createFile(indexPath, '').then((path) => {}).catch((error) => {
-  console.log(`Problem creating bundle.css: ${error.message}`)
+  console.log(`Problem creating index.html: ${error.message}`)
 });
 
 //Read and save template
@@ -108,7 +108,7 @@ pushTemplate(function () {
 
 //Create empty file style.css in project-dist
 createFile(styles, '').then((path) => {}).catch((error) => {
-  console.log(`Problem creating style.css: ${error.message}`)
+  console.log(`Problem creating style.css (0): ${error.message}`)
 });
 
 var all = [];
@@ -147,7 +147,7 @@ fs.readdir(styleFrom,
 fs.readFile(styles, 'utf8', (err, files) => {
   if(err){
     createFile(styles, all.join(''),).then((path) => {}).catch((error) => {
-      console.log(`Problem creating bundle.css: ${error.message}`)
+      console.log(`Problem creating style.css (1): ${error.message}`)
     });
   } else old.push(files);
 });
@@ -155,7 +155,7 @@ fs.readFile(styles, 'utf8', (err, files) => {
 fs.access(styles, function(err) {
   if(err && err.code === 'ENOENT') {
     createFile(styles, all.join(''),).then((path) => {}).catch((error) => {
-      console.log(`Problem creating bundle.css: ${error.message}`)
+      console.log(`Problem creating style.css (2): ${error.message}`)
     });
   } else{
     fs.readFile(styles, 'utf8', 
@@ -164,7 +164,7 @@ fs.access(styles, function(err) {
         else{
           copy = all;
           createFile(styles, copy.join(''),).then((path) => {}).catch((error) => {
-            console.log(`Problem creating bundle.css: ${error.message}`)
+            console.log(`Problem creating style.css (3): ${error.message}`)
           });
         }
     });
@@ -173,10 +173,12 @@ fs.access(styles, function(err) {
 
 //Create empty assets directory in project-dist
 createDirectory(copyLink).then((path) => {}).catch((error) => {
-  console.log(`Problem creating directory: ${error.message}`)
+  console.log(`Problem creating assets directory: ${error.message}`)
 });
 
 function addAssets(orig, newF) {
+
+
   fs.readdir(orig,
     { withFileTypes: true },
     (err, files) => {
@@ -184,19 +186,21 @@ function addAssets(orig, newF) {
     files.forEach(file => {
       const oF = path.join(orig, file.name);
       const nF = path.join(newF, file.name);
-      if (file.isFile()) {
-        fs.copyFile(oF, nF,(err) => {
-          if (err) console.error(err);
-        });
-      }
       if (file.isDirectory()) {
         fs.stat(nF, (err) => {
           if(err) {
-            createDirectory(nF);
+            fs.mkdir(nF, (err) => {
+              if (err) console.error(err);
+            });
             addAssets(oF, nF);
           } else {
             addAssets(oF, nF);
           }
+        });
+      }
+      if (file.isFile()) {
+        fs.copyFile(oF, nF,(err) => {
+          if (err) console.error(err);
         });
       }
     });
